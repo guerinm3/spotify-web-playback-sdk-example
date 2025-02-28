@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import { Setup } from './setup';
 const track = {
     name: "",
     album: {
@@ -11,7 +11,69 @@ const track = {
         { name: "" }
     ]
 }
-
+const myMap= new Map([
+    ["ano0u964x8jvy11b5z8stovb3", "Gouerine"],
+    ["21zgtegla4e7dq4wymm27xsdq", "Shampoo"],
+    ["31mynqwbghuqm3mws43dpwjzwipq", "Gabougi"],
+    ["gaboulacasse", "Gab"],
+    ["22ma72dcr32kotfqx6k5qrc2i", "Laurie"],
+    ["22n5rrw3kn5j2o7yqzq72hhba", "Paquet"],
+    ["kaobilin", "Kayo"],
+    ["donodube", "Dono"],
+    ["francis-william", "Frank"],
+    ["au_soc_2000", "Audrey"],
+    ["3401163", "D-A"],
+    ["21b6mpkedbmm27zr73amxoezy", "Sam"],
+    ["xtyaemma6bns3zzrzs95si3g3", "Bobo"],
+    ["thomgiroux", "Tom"],
+    ["vbw6drqkg2zd9kp3u54uq2awl", "Raphicock"],
+    ["5tr36khdf2mw1stbr46qar1mn", "Marylise"],
+    ["minimarcoux", "Marcoux"]
+  ])
+let currentIndex=0;
+let array=[];
+let showText=false;
+let text="";
+class ss extends Component{
+    state = {
+      showMessage: false
+    }
+    onButtonClickHandler = () => {
+     this.setState({showMessage: true});
+    };
+  
+    render(){ 
+      return(<div className="ss">
+       {this.state.showMessage && <p>Hi</p>}
+        <button onClick={this.onButtonClickHandler}>Enter</button>
+      </div>);
+  
+    }
+  }
+async function startGame() {
+    //GetData.getPlaylist();
+    array=await Setup.GetAllSongsFromUsers();
+};
+function goToPrevious() {
+    if (currentIndex > 0) {
+      currentIndex--;
+    }
+  }
+  function goToNext() {
+    if (currentIndex < array.length - 1) {
+      currentIndex++;
+      showText=false;
+      text=myMap.get(array[currentIndex].addedByKey);
+    }
+  }
+  function toggleText() {
+    
+    showText = !showText; // Toggle the display of the text
+  }
+  function textShowed(){
+    if(showText)
+    return <h1>{text}</h1>
+  }
 function WebPlayback(props) {
 
     const [is_paused, setPaused] = useState(false);
@@ -86,7 +148,7 @@ function WebPlayback(props) {
                             <div className="now-playing__name">{current_track.name}</div>
                             <div className="now-playing__artist">{current_track.artists[0].name}</div>
 
-                            <button className="btn-spotify" onClick={() => { player.previousTrack() }} >
+                            <button className="btn-spotify" onClick={() => {goToPrevious(); player.previousTrack() }} >
                                 &lt;&lt;
                             </button>
 
@@ -94,11 +156,21 @@ function WebPlayback(props) {
                                 { is_paused ? "PLAY" : "PAUSE" }
                             </button>
 
-                            <button className="btn-spotify" onClick={() => { player.nextTrack() }} >
+                            <button className="btn-spotify" onClick={() => {  goToNext();player.nextTrack() }} >
                                 &gt;&gt;
                             </button>
                         </div>
                     </div>
+                </div>
+                <div className="container">
+                
+                <button className="btn-spotify" onClick={() => { startGame()}} >
+                    Start
+                </button>
+                <button className="btn-spotify" onClick={() => { toggleText()}} >
+                    Show
+                </button>
+                    <textShowed/>
                 </div>
             </>
         );
