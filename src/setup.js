@@ -8,6 +8,8 @@ var SpotifyWebApi = require('spotify-web-api-node');
 var spotifyApi = new SpotifyWebApi();
 spotifyApi.setClientId("2011e059394948b1b8fb55cf17191d57");
 spotifyApi.setClientSecret("26073e7963ad4e7f89fab8ad3b2eb065");
+const SONGS_PER_ALBUM=2;
+const NUMBER_OF_ALBUMS=5;
 const list = new Array(
   "ano0u964x8jvy11b5z8stovb3",
   "21zgtegla4e7dq4wymm27xsdq",
@@ -59,20 +61,19 @@ export class Setup {
 static async addSongToQueue(songID){
     spotifyApi.addToQueue(songID);
 }
-  static async save5songsFromPlaylist(playlistId) {
+  static async savesongsFromPlaylist(playlistId) {
     const items4 = await spotifyApi.getPlaylistTracks(
         playlistId
     )
-    //print(items4);
+    console.log(items4)
     if(items4.statusCode==200){
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < SONGS_PER_ALBUM; i++) {
             let random = Math.floor(Math.random() * (items4.body.items.length - 1) + 0)
-      
               let song = {
                   addedByKey: items4.body.items[random].added_by.id,
-                  songUrl: items4.body.items[random].track.external_urls.spotify
+                  songUrl: items4.body.items[random].track.external_urls.spotify,
+                  uri:items4.body.items[random].track.uri.toString(),
                 }
-                spotifyApi.addToQueue(song.songUrl)
                 currentSongList.push(song)
       
           }
@@ -83,13 +84,10 @@ static async addSongToQueue(songID){
     const items3 = await spotifyApi.getUserPlaylists(
       key
     )
-    console.log(items3);
-    //delay(1000);
-    //console.log(items3)
     if(items3.statusCode==200){
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < NUMBER_OF_ALBUMS; i++) {
         let random = Math.floor(Math.random() * (items3.body.items.length - 1) + 0)
-        await this.save5songsFromPlaylist(items3.body.items[random].id)
+        await this.savesongsFromPlaylist(items3.body.items[random].id)
         }
     }   
   }
@@ -97,16 +95,18 @@ static async addSongToQueue(songID){
     console.log("starting");
     const response = await fetch('/auth/token');
     const json = await response.json();
-    spotifyApi.setAccessToken(json.access_token);
+    await spotifyApi.setAccessToken(json.access_token);
     for (let index = 0; index < list.length; index++) {
       await this.getPlaylistsFromSingleUser(list[index])
     }
     console.log("done");
     
-    let s = this.shuffle(currentSongList);
-    console.log(currentSongList);
+    let shuffleList = this.shuffle(currentSongList);
+    for(let i=0;i<shuffleList.length;i++){
+      await spotifyApi.addToQueue(shuffleList[i].uri)
+    }
     spotifyApi.skipToNext();
-    return s
+    return shuffleList
   }
   static shuffle(array) {
     let currentIndex = array.length,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,Component } from 'react';
 import { Setup } from './setup';
 const track = {
     name: "",
@@ -30,10 +30,6 @@ const myMap= new Map([
     ["5tr36khdf2mw1stbr46qar1mn", "Marylise"],
     ["minimarcoux", "Marcoux"]
   ])
-let currentIndex=0;
-let array=[];
-let showText=false;
-let text="";
 class ss extends Component{
     state = {
       showMessage: false
@@ -50,37 +46,42 @@ class ss extends Component{
   
     }
   }
-async function startGame() {
-    //GetData.getPlaylist();
-    array=await Setup.GetAllSongsFromUsers();
-};
-function goToPrevious() {
-    if (currentIndex > 0) {
-      currentIndex--;
-    }
-  }
-  function goToNext() {
-    if (currentIndex < array.length - 1) {
-      currentIndex++;
-      showText=false;
-      text=myMap.get(array[currentIndex].addedByKey);
-    }
-  }
-  function toggleText() {
-    
-    showText = !showText; // Toggle the display of the text
-  }
-  function textShowed(){
-    if(showText)
-    return <h1>{text}</h1>
-  }
-function WebPlayback(props) {
 
+function WebPlayback(props) {
+    const [text, setText] = useState("");
+    const [array, setArray] = useState([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [showText, setShowText] = useState(false);
     const [is_paused, setPaused] = useState(false);
     const [is_active, setActive] = useState(false);
     const [player, setPlayer] = useState(undefined);
     const [current_track, setTrack] = useState(track);
-
+    function toggleText() {
+        console.log("__________________________")
+        setShowText(!showText); // Toggle the display of the text
+        
+    }
+    async function startGame() {
+        //GetData.getPlaylist();
+        let array1=await Setup.GetAllSongsFromUsers();
+        setArray(array1);
+        setText(myMap.get(array1[currentIndex].addedByKey));
+    };
+    function goToPrevious() {
+        if (currentIndex > 0) {
+            setCurrentIndex(currentIndex-1);
+        }
+      }
+      function goToNext() {
+        if (currentIndex < array.length - 1) {
+          setCurrentIndex(prevState=>{
+            setText(myMap.get(array[prevState+1].addedByKey));
+            return prevState+1;
+          });
+          setShowText(false);
+          //setText(myMap.get(array[tempIndex].addedByKey));
+        }
+      }
     useEffect(() => {
 
         const script = document.createElement("script");
@@ -123,7 +124,6 @@ function WebPlayback(props) {
             }));
 
             player.connect();
-
         };
     }, []);
 
@@ -148,10 +148,6 @@ function WebPlayback(props) {
                             <div className="now-playing__name">{current_track.name}</div>
                             <div className="now-playing__artist">{current_track.artists[0].name}</div>
 
-                            <button className="btn-spotify" onClick={() => {goToPrevious(); player.previousTrack() }} >
-                                &lt;&lt;
-                            </button>
-
                             <button className="btn-spotify" onClick={() => { player.togglePlay() }} >
                                 { is_paused ? "PLAY" : "PAUSE" }
                             </button>
@@ -167,10 +163,10 @@ function WebPlayback(props) {
                 <button className="btn-spotify" onClick={() => { startGame()}} >
                     Start
                 </button>
-                <button className="btn-spotify" onClick={() => { toggleText()}} >
+                <button className="btn-spotify" onClick={() =>toggleText()} >
                     Show
                 </button>
-                    <textShowed/>
+                <h1>{!!showText&&text}</h1>
                 </div>
             </>
         );
